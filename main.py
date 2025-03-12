@@ -33,6 +33,9 @@ def load_data():
 
     # Filter to only include the required columns
     df = df[DISPLAY_COLUMNS]
+    
+    # Sort by Created At descending to show most recent records first
+    df = df.sort_values("created_at", ascending=False)
 
     return df
 
