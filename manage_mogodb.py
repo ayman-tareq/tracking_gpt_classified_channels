@@ -30,6 +30,7 @@ def get_all_gpt_classified_channels(hours=24):
         # Convert the result to a DataFrame (optional, for further analysis)
         df = pd.DataFrame(result)
         df.drop_duplicates(['yt_channel_id'], inplace=True)
+        df['']
     except Exception as e:
         print('Error: Unable to fetch visited-channels data.', e)
     finally:

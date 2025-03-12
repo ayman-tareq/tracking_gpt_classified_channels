@@ -23,7 +23,7 @@ REFRESH_INTERVAL = 60  # Refresh every 60 seconds
 # Columns to display
 DISPLAY_COLUMNS = [
     'yt_channel_id', 'title', 'subscriber_count', 'video_count', 'channel_url', 
-    'final_category', 'format', 'is_faceless', 'is_bad_channel', 'created_at'
+    'final_category', 'format', 'is_faceless', 'is_bad_channel', 'marked_as_bad_by_gpt', 'created_at'
 ]
 
 @st.cache_data(ttl=REFRESH_INTERVAL)
@@ -36,6 +36,7 @@ def load_data():
     
     # Sort by Created At descending to show most recent records first
     df = df.sort_values("created_at", ascending=False)
+    df.reset_index(drop=True, inplace=True)
 
     return df
 
