@@ -10,7 +10,7 @@ def load_data():
     df = get_all_gpt_classified_channels()
 
     # Sort newest first
-    df = df.sort_values("created_at", ascending=False)
+    df = df.sort_values(["created_at"], ascending=False)
 
     # Create a clickable link column
     df["channel_link"] = df["channel_url"].apply(
