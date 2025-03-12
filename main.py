@@ -1,16 +1,14 @@
 import math
 import streamlit as st
+import pandas as pd
 from manage_mogodb import get_all_gpt_classified_channels
 
 PAGE_SIZE = 20
 
-@st.cache_data(ttl=60)  # or @st.cache if on older Streamlit
+@st.cache_data(ttl=60)  # or @st.cache/ @st.experimental_memo on older Streamlit versions
 def load_data():
-    """Fetch DataFrame, sort descending by created_at, and build a clickable URL column."""
+    """Fetch DataFrame and return key columns with a clickable URL column."""
     df = get_all_gpt_classified_channels()
-
-    # Sort newest first
-    df = df.sort_values(["created_at"], ascending=False)
 
     # Create a clickable link column
     df["channel_link"] = df["channel_url"].apply(
@@ -34,7 +32,7 @@ def load_data():
         ]
     ]
 
-    # Rename columns for clarity
+    # Rename columns for user‐friendly display
     df_display = df_display.rename(
         columns={
             "title": "Title",
@@ -44,20 +42,19 @@ def load_data():
             "final_category": "Category",
             "channel_language": "Language",
             "format": "Format",
-            "is_bad_channel": "Is_bad_channel?",
-            "is_faceless": "Is_faceless?",
-            "marked_as_bad_by_gpt": "Marked_as_bad_by_gpt?",
-            "created_at": "created_at",
+            "is_bad_channel": "Is Bad?",
+            "is_faceless": "Is Faceless?",
+            "marked_as_bad_by_gpt": "GPT Marked Bad?",
+            "created_at": "Created At",
         }
     )
-
     return df_display
 
 def main():
-    # Basic page config
+    # Configure Streamlit page
     st.set_page_config(page_title="GPT Classified Channels", layout="wide")
 
-    # Auto-refresh page via JavaScript every 60 seconds
+    # JavaScript auto‐refresh every 60 seconds
     st.markdown(
         """
         <script>
@@ -71,35 +68,42 @@ def main():
 
     st.title("GPT Classified Channels")
 
-    # Load the data (cached)
+    # Load (cached) data
     df_display = load_data()
 
-    # ------------------ FILTERS ------------------
-    # 'Is_faceless?' filter
-    is_faceless_filter = st.selectbox(
-        "Filter by 'Is_faceless?'", ["All", "True", "False"]
-    )
-    if is_faceless_filter != "All":
-        bool_val = (is_faceless_filter == "True")
-        df_display = df_display[df_display["Is_faceless?"] == bool_val]
+    # Sort by Created At descending to show most recent records first
+    df_display = df_display.sort_values("Created At", ascending=False)
 
-    # 'Is_bad_channel?' filter
-    is_bad_filter = st.selectbox(
-        "Filter by 'Is Bad Channel?'", ["All", "True", "False"]
+    # --- Filters ---
+    # Filter by is_faceless
+    faceless_filter = st.selectbox(
+        "Filter by is_faceless",
+        options=["All", "True", "False"],
+        index=0
     )
-    if is_bad_filter != "All":
-        bool_val = (is_bad_filter == "True")
-        df_display = df_display[df_display["Is Bad?"] == bool_val]
-    # ---------------------------------------------
+    # Filter by is_bad_channel
+    bad_channel_filter = st.selectbox(
+        "Filter by is_bad_channel",
+        options=["All", "True", "False"],
+        index=0
+    )
 
-    # Pagination setup
+    # Apply is_faceless filter if set
+    if faceless_filter != "All":
+        # Compare the bool column to True/False accordingly
+        df_display = df_display[df_display["Is Faceless?"] == (faceless_filter == "True")]
+
+    # Apply is_bad_channel filter if set
+    if bad_channel_filter != "All":
+        df_display = df_display[df_display["Is Bad?"] == (bad_channel_filter == "True")]
+
+    # --- Pagination setup ---
     if "current_page" not in st.session_state:
         st.session_state.current_page = 0
 
     total_records = len(df_display)
     total_pages = math.ceil(total_records / PAGE_SIZE)
 
-    # Pagination controls
     cols = st.columns([1, 1, 4])
     with cols[0]:
         if st.button("Previous"):
@@ -115,12 +119,12 @@ def main():
             f"(Total: {total_records} records)"
         )
 
-    # Slice data for current page
+    # Slice data for the current page
     start_idx = st.session_state.current_page * PAGE_SIZE
     end_idx = start_idx + PAGE_SIZE
     df_page = df_display.iloc[start_idx:end_idx]
 
-    # Display as HTML table with clickable links
+    # Display the table with clickable links
     st.markdown(
         df_page.to_html(escape=False, index=False),
         unsafe_allow_html=True
