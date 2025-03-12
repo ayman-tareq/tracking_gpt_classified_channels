@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta, timezone
-from pymongo import MongoClient, UpdateOne
-from dotenv import load_dotenv
+from pymongo import MongoClient
+
 import pandas as pd
-import os
+
+import toml
 
 def get_secondary_mongoDB_connection():
-    load_dotenv()
-    MONGODB_URI = os.environ.get('Secondary_MONGODB_URI')
+    # Load the TOML file
+    with open("secrets.toml", "r") as file:
+        config = toml.load(file)
+    # Access the value
+    MONGODB_URI = config["Secondary_MONGODB_URI"]
     client = MongoClient(MONGODB_URI, connectTimeoutMS=1000000, serverSelectionTimeoutMS=1000000)
     db = client['secondary-nexlev-extension']
     return db
