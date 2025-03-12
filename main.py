@@ -13,16 +13,6 @@ DISPLAY_COLUMNS = [
     'final_category', 'format', 'is_faceless', 'is_bad_channel', 'created_at'
 ]
 
-@st.cache_data(ttl=REFRESH_INTERVAL)
-def load_data():
-    """Fetch the DataFrame and process it."""
-    df = get_all_gpt_classified_channels()
-
-    # Filter to only include the required columns
-    # df = df[DISPLAY_COLUMNS]
-
-    return df
-
 def main():
     st.set_page_config(page_title="GPT Classified Channels", layout="wide")
 
@@ -41,7 +31,7 @@ def main():
     st.title("GPT Classified Channels")
 
     # 1) Load data (cached)
-    df_display = load_data()
+    df_display = get_all_gpt_classified_channels()
     st.dataframe(df_display)
 
 if __name__ == "__main__":
