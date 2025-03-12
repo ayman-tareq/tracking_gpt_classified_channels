@@ -5,12 +5,15 @@ from manage_mogodb import get_all_gpt_classified_channels
 
 PAGE_SIZE = 20
 
-@st.cache_data(ttl=60)  # or @st.cache(ttl=60) if on older Streamlit
+@st.cache_data(ttl=60)  # or @st.cache if on older Streamlit
 def load_data():
-    """Fetch DataFrame and return key columns with a clickable URL column."""
+    """Fetch DataFrame, sort descending by created_at, and build a clickable URL column."""
     df = get_all_gpt_classified_channels()
 
-    # Create clickable link column
+    # Sort newest first
+    df = df.sort_values("created_at", ascending=False)
+
+    # Create a clickable link column
     df["channel_link"] = df["channel_url"].apply(
         lambda url: f'<a href="{url}" target="_blank">Open Channel</a>'
     )
@@ -52,10 +55,10 @@ def load_data():
     return df_display
 
 def main():
-    # Page config
+    # Basic page config
     st.set_page_config(page_title="GPT Classified Channels", layout="wide")
 
-    # Auto-refresh via JavaScript every 60 seconds
+    # Auto-refresh page via JavaScript every 60 seconds
     st.markdown(
         """
         <script>
@@ -69,8 +72,26 @@ def main():
 
     st.title("GPT Classified Channels")
 
-    # Load data (cached for 60 seconds)
+    # Load the data (cached)
     df_display = load_data()
+
+    # ------------------ FILTERS ------------------
+    # 'Is Faceless?' filter
+    is_faceless_filter = st.selectbox(
+        "Filter by 'Is Faceless?'", ["All", "True", "False"]
+    )
+    if is_faceless_filter != "All":
+        bool_val = (is_faceless_filter == "True")
+        df_display = df_display[df_display["Is Faceless?"] == bool_val]
+
+    # 'Is Bad?' filter
+    is_bad_filter = st.selectbox(
+        "Filter by 'Is Bad Channel?'", ["All", "True", "False"]
+    )
+    if is_bad_filter != "All":
+        bool_val = (is_bad_filter == "True")
+        df_display = df_display[df_display["Is Bad?"] == bool_val]
+    # ---------------------------------------------
 
     # Pagination setup
     if "current_page" not in st.session_state:
@@ -95,12 +116,12 @@ def main():
             f"(Total: {total_records} records)"
         )
 
-    # Slice data for the current page
+    # Slice data for current page
     start_idx = st.session_state.current_page * PAGE_SIZE
     end_idx = start_idx + PAGE_SIZE
     df_page = df_display.iloc[start_idx:end_idx]
 
-    # Display a simple HTML table with clickable links
+    # Display as HTML table with clickable links
     st.markdown(
         df_page.to_html(escape=False, index=False),
         unsafe_allow_html=True
