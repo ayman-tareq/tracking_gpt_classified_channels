@@ -1,16 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from pymongo import MongoClient
-
+import streamlit as st
 import pandas as pd
 
-import toml
 
 def get_secondary_mongoDB_connection():
-    # Load the TOML file
-    with open("secrets.toml", "r") as file:
-        config = toml.load(file)
     # Access the value
-    MONGODB_URI = config["Secondary_MONGODB_URI"]
+    MONGODB_URI = st.secrets["Secondary_MONGODB_URI"]
     client = MongoClient(MONGODB_URI, connectTimeoutMS=1000000, serverSelectionTimeoutMS=1000000)
     db = client['secondary-nexlev-extension']
     return db
