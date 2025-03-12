@@ -19,7 +19,7 @@ def load_data():
     df = get_all_gpt_classified_channels()
 
     # Filter to only include the required columns
-    df = df[DISPLAY_COLUMNS]
+    # df = df[DISPLAY_COLUMNS]
 
     return df
 
