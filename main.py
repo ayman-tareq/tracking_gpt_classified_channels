@@ -1,6 +1,5 @@
 import math
 import streamlit as st
-import pandas as pd
 from manage_mogodb import get_all_gpt_classified_channels
 
 PAGE_SIZE = 20
