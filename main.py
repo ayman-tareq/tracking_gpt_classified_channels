@@ -44,10 +44,10 @@ def load_data():
             "final_category": "Category",
             "channel_language": "Language",
             "format": "Format",
-            "is_bad_channel": "Is Bad?",
-            "is_faceless": "Is Faceless?",
-            "marked_as_bad_by_gpt": "GPT Marked Bad?",
-            "created_at": "Created At",
+            "is_bad_channel": "Is_bad_channel?",
+            "is_faceless": "Is_faceless?",
+            "marked_as_bad_by_gpt": "Marked_as_bad_by_gpt?",
+            "created_at": "created_at",
         }
     )
 
@@ -75,15 +75,15 @@ def main():
     df_display = load_data()
 
     # ------------------ FILTERS ------------------
-    # 'Is Faceless?' filter
+    # 'Is_faceless?' filter
     is_faceless_filter = st.selectbox(
-        "Filter by 'Is Faceless?'", ["All", "True", "False"]
+        "Filter by 'Is_faceless?'", ["All", "True", "False"]
     )
     if is_faceless_filter != "All":
         bool_val = (is_faceless_filter == "True")
-        df_display = df_display[df_display["Is Faceless?"] == bool_val]
+        df_display = df_display[df_display["Is_faceless?"] == bool_val]
 
-    # 'Is Bad?' filter
+    # 'Is_bad_channel?' filter
     is_bad_filter = st.selectbox(
         "Filter by 'Is Bad Channel?'", ["All", "True", "False"]
     )
