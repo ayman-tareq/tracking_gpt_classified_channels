@@ -5,24 +5,23 @@ from manage_mogodb import get_all_gpt_classified_channels
 
 PAGE_SIZE = 20  # Show 20 records per page
 
-# If Streamlit < 1.18, use @st.cache or @st.experimental_memo
 @st.cache_data(ttl=60)  
 def load_data():
-    """Fetch the DataFrame. Create an extra 'channel_link' column if 'channel_url' exists."""
+    """Fetch the DataFrame. Create a 'channel_link' column if 'channel_url' exists."""
     df = get_all_gpt_classified_channels()
     
-    # If channel_url exists, add a clickable link column
+    # If 'channel_url' exists, make a clickable link column
     if 'channel_url' in df.columns:
         df['channel_link'] = df['channel_url'].apply(
             lambda url: f'<a href="{url}" target="_blank">Open Channel</a>' if pd.notna(url) else ''
         )
 
-    return df  # Return all columns unmodified (plus 'channel_link' if it exists)
+    return df
 
 def main():
     st.set_page_config(page_title="GPT Classified Channels", layout="wide")
 
-    # Auto‐refresh once per minute via JavaScript
+    # Auto‐refresh once per minute
     st.markdown(
         """
         <script>
@@ -36,35 +35,37 @@ def main():
 
     st.title("GPT Classified Channels")
 
-    # Load (cached) data
+    # 1) Load data (cached)
     df_display = load_data()
 
-    # 1) Sort by `created_at` descending, if present
+    # 2) If no data, show a warning and bail out
+    if df_display.empty:
+        st.warning("No data found. Check if your database is empty or if columns don't match.")
+        return
+
+    # 3) Sort by created_at descending, if the column exists
     if 'created_at' in df_display.columns:
         df_display = df_display.sort_values('created_at', ascending=False)
 
-    # 2) Filtering
-    # Filter by is_faceless
+    # 4) Filter by is_faceless if present
     if 'is_faceless' in df_display.columns:
-        faceless_filter = st.selectbox("Filter by is_faceless", ["All", "True", "False"])
+        faceless_filter = st.selectbox("Filter by is_faceless", ["All", "True", "False"], index=0)
         if faceless_filter != "All":
-            # Compare bool column with True/False
-            df_display = df_display[df_display['is_faceless'] == (faceless_filter == "True")]
+            df_display = df_display[df_display["is_faceless"] == (faceless_filter == "True")]
 
-    # Filter by is_bad_channel
+    # 5) Filter by is_bad_channel if present
     if 'is_bad_channel' in df_display.columns:
-        bad_channel_filter = st.selectbox("Filter by is_bad_channel", ["All", "True", "False"])
+        bad_channel_filter = st.selectbox("Filter by is_bad_channel", ["All", "True", "False"], index=0)
         if bad_channel_filter != "All":
-            df_display = df_display[df_display['is_bad_channel'] == (bad_channel_filter == "True")]
+            df_display = df_display[df_display["is_bad_channel"] == (bad_channel_filter == "True")]
 
-    # 3) Pagination
+    # 6) Pagination
     if "current_page" not in st.session_state:
         st.session_state.current_page = 0
 
     total_records = len(df_display)
     total_pages = math.ceil(total_records / PAGE_SIZE)
 
-    # Pagination controls
     cols = st.columns([1, 1, 4])
     with cols[0]:
         if st.button("Previous"):
@@ -82,12 +83,11 @@ def main():
             f"(Total: {total_records} records)"
         )
 
-    # Slice the DataFrame for the current page
     start_idx = st.session_state.current_page * PAGE_SIZE
     end_idx = start_idx + PAGE_SIZE
     df_page = df_display.iloc[start_idx:end_idx]
 
-    # 4) Display as HTML, preserving clickable links
+    # 7) Display table with clickable links (if 'channel_link' exists)
     st.markdown(
         df_page.to_html(escape=False, index=False),
         unsafe_allow_html=True
