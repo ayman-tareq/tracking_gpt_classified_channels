@@ -3,18 +3,30 @@ import streamlit as st
 import pandas as pd
 from manage_mogodb import get_all_gpt_classified_channels
 
+# Constants
 PAGE_SIZE = 20  # Show 20 records per page
+REFRESH_INTERVAL = 60  # Refresh every 60 seconds
 
-@st.cache_data(ttl=60)  
+# Columns to display
+DISPLAY_COLUMNS = [
+    'title', 'channel_url', 'category', 'final_category', 'format', 
+    'is_faceless', 'is_bad_channel', 'subscriber_count', 'video_count', 
+    'created_at'
+]
+
+@st.cache_data(ttl=REFRESH_INTERVAL)
 def load_data():
-    """Fetch the DataFrame. Create a 'channel_link' column if 'channel_url' exists."""
+    """Fetch the DataFrame and process it."""
     df = get_all_gpt_classified_channels()
-    
-    # If 'channel_url' exists, make a clickable link column
+
+    # Create a clickable link column for 'channel_url'
     if 'channel_url' in df.columns:
-        df['channel_link'] = df['channel_url'].apply(
+        df['channel_url'] = df['channel_url'].apply(
             lambda url: f'<a href="{url}" target="_blank">Open Channel</a>' if pd.notna(url) else ''
         )
+
+    # Filter to only include the required columns
+    df = df[DISPLAY_COLUMNS]
 
     return df
 
@@ -23,11 +35,11 @@ def main():
 
     # Auto‐refresh once per minute
     st.markdown(
-        """
+        f"""
         <script>
-          setTimeout(function() {
+          setTimeout(function() {{
               window.location.reload();
-          }, 60 * 1000); // 60 seconds
+          }}, {REFRESH_INTERVAL * 1000}); // {REFRESH_INTERVAL} seconds
         </script>
         """,
         unsafe_allow_html=True
@@ -43,7 +55,7 @@ def main():
         st.warning("No data found. Check if your database is empty or if columns don't match.")
         return
 
-    # 3) Sort by created_at descending, if the column exists
+    # 3) Sort by created_at descending to show the latest records first
     if 'created_at' in df_display.columns:
         df_display = df_display.sort_values('created_at', ascending=False)
 
@@ -87,7 +99,7 @@ def main():
     end_idx = start_idx + PAGE_SIZE
     df_page = df_display.iloc[start_idx:end_idx]
 
-    # 7) Display table with clickable links (if 'channel_link' exists)
+    # 7) Display table with clickable links
     st.markdown(
         df_page.to_html(escape=False, index=False),
         unsafe_allow_html=True
