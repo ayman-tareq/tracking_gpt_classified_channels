@@ -5,8 +5,7 @@ import pandas as pd
 
 
 def get_secondary_mongoDB_connection():
-    # Access the value
-    MONGODB_URI = st.secrets["Secondary_MONGODB_URI"]
+    MONGODB_URI = st.secrets['Secondary_MONGODB_URI']
     client = MongoClient(MONGODB_URI, connectTimeoutMS=1000000, serverSelectionTimeoutMS=1000000)
     db = client['secondary-nexlev-extension']
     return db

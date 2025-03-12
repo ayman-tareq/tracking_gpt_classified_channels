@@ -1,7 +1,20 @@
-import math
+
 import streamlit as st
 import pandas as pd
 from manage_mogodb import get_all_gpt_classified_channels
+
+# Set page config (must be the first Streamlit command)
+st.set_page_config(
+    page_title="Tracking gpt classified channels in real-time",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    },
+    page_icon="[▶]"
+)
 
 # Constants
 PAGE_SIZE = 20  # Show 20 records per page
@@ -24,8 +37,6 @@ def load_data():
     return df
 
 def main():
-    st.set_page_config(page_title="GPT Classified Channels", layout="wide")
-
     # Auto‐refresh once per minute
     st.markdown(
         f"""
