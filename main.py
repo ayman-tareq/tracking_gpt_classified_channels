@@ -49,10 +49,13 @@ def main():
         unsafe_allow_html=True
     )
 
-    st.title("GPT Classified Channels")
-
     # 1) Load data (cached)
     df_display = load_data()
+
+    st.title("GPT Classified Channels")
+    st.header(f"Total Channels: {len(df_display)}")
+
+    
     st.dataframe(df_display)
 
 if __name__ == "__main__":
